@@ -1,0 +1,25 @@
+<% if @info %>
+  <p>Hi, <%= @info["data"]["name"]["first"] %>! Here's your schedule:</p>
+  <table>
+    <tr>
+      <th>Class Name</th>
+      <th>Instructor</th>
+      <th>Period</th>
+      <th>Id</th>
+    </tr>
+    <% sections(me_info["data"]["id"]).sort_by(&:period).each do |section| %>
+      <tr>
+        <td><%=section.course_name%></td>
+        <td><%="#{section.instructor.name[:first].chars.first}. #{section.instructor.name[:last]}"%> </td>
+        <td><%=section.period%></td>
+        <td><%=section.id%></td>
+      </tr>
+    <% end %>
+  </table>
+<% else %>
+<p>
+<a href="https://clever.com/oauth/authorize?response_type=code&redirect_uri=<%=CGI.escape("http://localhost:9292/oauth")%>&client_id=<%=ENV["CLEVER_CLIENT_ID"]%>&scope=read%3Auser_id%20read%3Astudents&district_id=<%=@districts.first.id%>">
+  log in with clever
+</a>
+</p>
+<% end %>
