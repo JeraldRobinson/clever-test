@@ -1,14 +1,16 @@
+require "base64"
 require "sinatra"
 require "faraday"
 require "json"
 class CleverDemo < Sinatra::Base
   OAUTH_REDIRECT_URI = "https://obscure-bastion-5205.herokuapp.com/oauth"
+  #OAUTH_REDIRECT_URI = "http://localhost:9292/oauth"
   use Rack::Session::Cookie, :expire_after => 102592000
 
   get "/" do
     logger.info "getting root"
     logger.info env["rack.session.options"].inspect
-    @info = me_info if session["clever_id"]
+    @info = student_info(session["clever_id"]) if session["clever_id"]
     erb :schedule
   end
 
@@ -22,11 +24,27 @@ class CleverDemo < Sinatra::Base
     redirect "/"
   end
 
-  def me_info
+  def student_info(student_id)
+    resp = clever_client.get("/v1.1/students/#{student_id}")
+    if resp.success?
+      JSON.parse(resp.body).merge("valid" => true)
+    else
+      {"valid" => false}
+    end
+  end
+
+  def clever_client
+    Faraday.new(:url => 'https://api.clever.com') do |builder|
+      builder.adapter  Faraday.default_adapter
+      builder.headers["Authorization"] = "Basic #{Base64.encode64(ENV["CLEVER_API_KEY"]+":")}"
+    end
+  end
+
+  def me_info(token)
     conn = Faraday.new(:url => 'https://api.clever.com') do |builder|
       builder.adapter  Faraday.default_adapter
     end
-    conn.headers["Authorization"] = "Bearer #{session["clever_id"]}"
+    conn.headers["Authorization"] = "Bearer #{token}"
     info = conn.get("/me").body
     JSON.parse(info)
   end
@@ -38,15 +56,16 @@ class CleverDemo < Sinatra::Base
   def retrieve_clever_auth_token
     conn = Faraday.new(:url => 'https://clever.com') do |builder|
       builder.use Faraday::Request::UrlEncoded
-      #Q: could never make this work with curl -- research in gem?
-      builder.basic_auth(ENV["CLEVER_CLIENT_ID"], ENV["CLEVER_CLIENT_SECRET"])
+      auth_string = Base64.encode64("#{ENV["CLEVER_CLIENT_ID"]}:#{ENV["CLEVER_CLIENT_SECRET"]}").gsub("\n","")
+      builder.headers["Authorization"] = "Basic #{auth_string}"
       builder.adapter  Faraday.default_adapter
     end
-    stuff = conn.post("/oauth/tokens", code_params)
+    response = conn.post("/oauth/tokens", code_params)
     if stuff.success?
-      session["clever_id"] = JSON.parse(stuff.body)["access_token"]
+      token = JSON.parse(stuff.body)["access_token"]
+      session["clever_id"] = me_info(token)["data"]["id"]
     else
-      raise stuff.body.to_s
+      response stuff.body.to_s
     end
   end
 

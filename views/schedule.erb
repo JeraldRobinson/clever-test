@@ -1,4 +1,4 @@
-<% if @info %>
+<% if @info && @info["valid"] %>
   <p>Hi, <%= @info["data"]["name"]["first"] %>! Here's your schedule:</p>
   <table>
     <tr>
@@ -7,7 +7,7 @@
       <th>Period</th>
       <th>Id</th>
     </tr>
-    <% sections(me_info["data"]["id"]).sort_by(&:period).each do |section| %>
+    <% sections(@info["data"]["id"]).sort_by(&:period).each do |section| %>
       <tr>
         <td><%=section.course_name%></td>
         <td><%="#{section.instructor.name[:first].chars.first}. #{section.instructor.name[:last]}"%> </td>

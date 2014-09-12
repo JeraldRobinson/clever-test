@@ -9,8 +9,14 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
+    byebug (3.4.0)
+      columnize (~> 0.8)
+      debugger-linecache (~> 1.2)
+      slop (~> 3.6)
     celluloid (0.16.0)
       timers (~> 4.0.0)
+    columnize (0.8.9)
+    debugger-linecache (1.2.0)
     faraday (0.9.0)
       multipart-post (>= 1.2, < 3)
     ffi (1.9.3)
@@ -40,6 +46,7 @@ GEM
       rack (~> 1.4)
       rack-protection (~> 1.4)
       tilt (~> 1.3, >= 1.3.4)
+    slop (3.6.0)
     tilt (1.4.1)
     timers (4.0.0)
       hitimes
@@ -48,6 +55,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  byebug
   clever-ruby!
   faraday
   rerun
