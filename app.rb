@@ -9,6 +9,7 @@ class CleverDemo < Sinatra::Base
     logger.info "getting root"
     logger.info env["rack.session.options"].inspect
     @info = me_info if session["clever_id"]
+    @districts = Clever::District.all
     erb :schedule
   end
 
