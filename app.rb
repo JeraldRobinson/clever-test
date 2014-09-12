@@ -2,7 +2,7 @@ require "sinatra"
 require "faraday"
 require "json"
 class CleverDemo < Sinatra::Base
-  OAUTH_REDIRECT_URI = "http://obscure-bastion-5205.herokuapp.com/oauth"
+  OAUTH_REDIRECT_URI = "https://obscure-bastion-5205.herokuapp.com/oauth"
   use Rack::Session::Cookie, :expire_after => 102592000
 
   get "/" do
