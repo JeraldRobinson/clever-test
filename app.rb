@@ -2,19 +2,18 @@ require "sinatra"
 require "faraday"
 require "json"
 class CleverDemo < Sinatra::Base
-  OAUTH_REDIRECT_URI = "http://localhost:9292/oauth"
+  OAUTH_REDIRECT_URI = "http://obscure-bastion-5205.herokuapp.com/oauth"
   use Rack::Session::Cookie, :expire_after => 102592000
 
   get "/" do
     logger.info "getting root"
     logger.info env["rack.session.options"].inspect
     @info = me_info if session["clever_id"]
-    @districts = Clever::District.all
     erb :schedule
   end
 
   get "/oauth" do
-    faraday_wtf
+    retrieve_clever_auth_token
     redirect "/"
   end
 
@@ -31,7 +30,7 @@ class CleverDemo < Sinatra::Base
     {"code" => params[:code],"grant_type" => "authorization_code","redirect_uri" => OAUTH_REDIRECT_URI}
   end
 
-  def faraday_wtf
+  def retrieve_clever_auth_token
     conn = Faraday.new(:url => 'https://clever.com') do |builder|
       builder.use Faraday::Request::UrlEncoded
       #Q: could never make this work with curl -- research in gem?
@@ -52,5 +51,13 @@ class CleverDemo < Sinatra::Base
 
   def session
     env["rack.session"]
+  end
+
+  def clever_auth_url
+    "https://clever.com/oauth/authorize?response_type=code&redirect_uri=#{CGI.escape(OAUTH_REDIRECT_URI)}&client_id=#{ENV["CLEVER_CLIENT_ID"]}&scope=read%3Auser_id%20read%3Astudents&district_id=#{districts.first.id}"
+  end
+
+  def districts
+    @districts ||= Clever::District.all
   end
 end

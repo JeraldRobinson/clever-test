@@ -18,7 +18,7 @@
   </table>
 <% else %>
 <p>
-<a href="https://clever.com/oauth/authorize?response_type=code&redirect_uri=<%=CGI.escape("http://localhost:9292/oauth")%>&client_id=<%=ENV["CLEVER_CLIENT_ID"]%>&scope=read%3Auser_id%20read%3Astudents&district_id=<%=@districts.first.id%>">
+<a href="<%=clever_auth_url%>">
   log in with clever
 </a>
 </p>
