@@ -17,6 +17,11 @@ class CleverDemo < Sinatra::Base
     redirect "/"
   end
 
+  get "/logout" do
+    session.clear
+    redirect "/"
+  end
+
   def me_info
     conn = Faraday.new(:url => 'https://api.clever.com') do |builder|
       builder.adapter  Faraday.default_adapter
