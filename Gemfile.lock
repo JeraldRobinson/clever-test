@@ -1,7 +1,8 @@
-PATH
-  remote: ../clever-ruby
+GIT
+  remote: git@github.com:worace/clever-ruby.git
+  revision: 22c73fd8f8511c0de10aebcebb4681a74298a724
   specs:
-    clever-ruby (0.4.0)
+    clever-ruby (0.7.0)
       multi_json (~> 1.10.0)
       rest-client (~> 1.6.7)
 
@@ -28,7 +29,7 @@ GEM
     rb-fsevent (0.9.4)
     rb-inotify (0.9.5)
       ffi (>= 0.5.0)
-    rdoc (4.1.1)
+    rdoc (4.1.2)
       json (~> 1.4)
     rerun (0.10.0)
       listen (~> 2.7, >= 2.7.3)
