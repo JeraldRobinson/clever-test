@@ -59,7 +59,7 @@ class CleverDemo < Sinatra::Base
   end
 
   def clever_auth_url
-    "https://clever.com/oauth/authorize?response_type=code&redirect_uri=#{CGI.escape(OAUTH_REDIRECT_URI)}&client_id=#{ENV["CLEVER_CLIENT_ID"]}&scope=read%3Auser_id%20read%3Astudents&district_id=#{districts.first.id}"
+    "https://clever.com/oauth/authorize?response_type=code&redirect_uri=#{OAUTH_REDIRECT_URI}&client_id=#{ENV["CLEVER_CLIENT_ID"]}&scope=read%3Auser_id%20read%3Astudents&district_id=#{districts.first.id}"
   end
 
   def districts
