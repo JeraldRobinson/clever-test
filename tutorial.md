@@ -2,22 +2,31 @@
 
 Clever is a platform for building education applications. It provides an easy-to-use SSO platform and a powerful API for fetching aggregated student and school data. In the following tutorial, we'll walk through the steps for building a basic application leveraging the Clever Auth platform and API. The main topics we will focus on are authenticating your users with Clever using the Oauth protocol and retrieving user data from Clever's REST API.
 
-
 #### Authenticating the user with clever
 	
-One of the most powerful features of Clever's platform is the ability to authenticate students and teachers from multiple districts via a single sign in flow. Clever allows this by providing an Oauth2 server. You can read about Oauth2 in excruciating detail in the IETF's [RFC](http://tools.ietf.org/html/rfc6749). 
+Clever's auth platform is an implementation of the Oauth2 protocol. Interacting with the auth server is not too complicated, but there are several steps involved and it's important to get the details right.
 	
-__But in short there are 3 basic steps for authenticating a user with oauth:__
-	1. Constructing a valid "login" link to Clever's oauth endpoint.
+__Steps for authenticating users with Clever:__
+
+	1. Constructing a valid "login" link to Clever's oauth endpoint. (This will take the user momentarily off of your site momentarily so they can login with Clever)
 	2. Receiving a temporary authorization code from Clever (this is generally included as a parameter in a redirect to your server)
-	3. Exchanging the temporary grant for an actual Oauth Token.
+	3. Exchanging the temporary grant for an actual Oauth Token via Clever's token API.
 	
 __To make the auth flow work we'll use a few pieces of info from Clever:__
+
 	- Clever Client ID (public, assigned when you register your Clever app)
 	- Clever Client Secret (secret, assigned when you register your Clever app)
 	- redirect uri (public, configurable in clever's app console)
-	
-So with that said, let's get into it.
+
+A quick note on working with your Clever credentials: while you could simply embed these in source, it's best to anonymize them. An easy way to do this is by exporting them to your shell environment. For example:
+
+```
+export CLEVER_CLIENT_ID=your_id
+export CLEVER_CLIENT_SECRET=your_secret
+export CLEVER_API_KEY=your_key
+```
+
+So with that said, let's get our user's authenticated. I'll be showing code examples for a simple web server implementation using Ruby's Sinatra library, but the principles will apply to any language or framework.
 
 1. __Linking to Clever’s oauth server__
 
@@ -39,8 +48,35 @@ So with that said, let's get into it.
 	
 	- `response_type` -- generally "code"
 
-	By encoding these items as query params in a link to clever.com/oauth/authorize, you give Clever the info it needs to recognize your application, and to send the user back to you after they have authenticated.
+	By encoding these items as query params in a link to clever.com/oauth/authorize, you give Clever the info it needs to recognize your application, and to send the user back to you after they have authenticated. Let's show this link to our users:
+		
+		require "sinatra"
+		require "active_support/core_ext/hash" #for Hash#to_query
+		require "uri"
 
+		CLEVER_ROOT = "https://clever.com"
+		CLEVER_REDIRECT_URI = "http://localhost:9292/oauth"
+
+		get "/" do
+			"<a href='#{clever_auth_url}'>Log in with Clever!</a>"
+		end
+	
+		def clever_auth_url
+	  		URI(CLEVER_ROOT).tap do |uri|
+	    		uri.query = clever_auth_params.to_query
+	  		end
+		end
+	
+		def clever_auth_params
+	 		{
+	  		"client_id" => ENV["CLEVER_CLIENT_ID"],
+		    "redirect_uri" => CLEVER_REDIRECT_URI,
+		    "response_type" => "code",
+		    "scope" => "read:user_id read:student"
+			}
+		end
+	
+	
 2. __Handling authentication grants from Clever__
 
 	After authenticating on Clever.com, the user is redirected back to the redirect URI you provided. An example redirect URI might look like:
@@ -58,31 +94,38 @@ So with that said, let's get into it.
 	
 	This last component is key to oauth, as it’s what proves to Clever that your application is really who it says it is, and that the user in question has authenticated with the right service. Because of this it’s essential to keep your app’s client secret exactly that -- secret. Also note that you should always use https when sending this POST to clever. Failure to do so could allow man in the middle attackers to intercept your request and thus access your Client Secret. Finally, keep in mind that Base64 is merely an encoding convenience, not a cryptographic hashing algorithm, so it does not offer any protection against attacks.
 
-	So that said, here's an example of what this request looks like in Ruby:
+	So that said, here's handling the redirect and exchanging the code looks like in our Sinatra app. We will be using ruby's Faraday library to make the request to Clever's token endpoint.
 
 	```
+	get "/oauth" do
+	  conn = Faraday.new(:url => CLEVER_ROOT) do |builder|
+	    builder.use Faraday::Request::UrlEncoded
+	    builder.headers["Authorization"] = "Basic #{clever_basic_auth_string}"
+	    builder.adapter  Faraday.default_adapter
+	  end
+	  code_params = {"code" => params[:code],"grant_type" => "authorization_code","redirect_uri" => CLEVER_REDIRECT_URI}
+	  response = conn.post("/oauth/tokens", code_params)
+	
+	  if response.success?
+	    "<p>Congrats, you logged in!</p>
+	     <p>token: #{JSON.parse(response.body)["access_token"]}</p>
+	     <p><a href='/'>home</a></p>"
+	  else
+	    "<p>#{response.body.to_s}</p><p><a href='/'>home</a></p>"
+	  end	    
+	end
 	```
 
-	and with curl:
-
-	```
-	```
-
-
-	Assuming we did all of this correctly, Clever’s server will send back a response containing -- at long last! -- an oauth access token for the user. The response will be a json payload like so:
-
-	```
-	{“access_token”:”your_token”}
-	```
-
-	If something goes wrong, clever will send back some error information about the response. Some common errors are:
+	Note that clever provide the access token as a JSON payload, and we are capturing it above. Additionally, if something goes wrong, Clever will send error information in the response. Some common errors are:
 
 	- `invalid_grant` -- this means the code you sent to clever was either invalid or expired. make sure you included the exact code parameter they sent, and that you didn’t take too long in posting to clever.
-	- `invalid redirect` -- make sure the redirect_uri you supplied matches what is on file in Clever’s app console. Watch for trailing slashes, http vs https, etc.
+	- `invalid redirect` -- make sure the redirect_uri you supplied matches what is on file in Clever’s app console. Watch for trailing slashes, http vs https, etc.				
 
 	Now that you’ve got a token, we can use it to do some stuff. Perhaps most exciting, you can retrieve the user’s data from Clever!
+	
+#### Working With Clever's Rest API
 
-3. __Fetching the User’s Info from Clever’s API__
+1. __Fetching the User’s Info from Clever’s API__
 
 	The access_token returned by clever is what the Oauth system calls a “bearer token.” It proves to the system that you are authorized by the user to access their data, according to the permissions granted to your app. For our case, let’s use it to retrieve the newly-authenticated users’s Clever ID from the `me` endpoint.
 
@@ -101,7 +144,7 @@ So with that said, let's get into it.
 	Finally, remember that the User’s current request was a redirect from Clever to our `/oauth` endpoint. This isn’t a particularly helpful place to leave them, so let’s send them back to the root where we can display some information.
 
 
-4. __Using the API to Display a User’s Course Schedule__
+2. __Using the API to Display a User’s Course Schedule__
 
 	Now that our user has run through oauth flow, authenticated, and landed back on the root page of our simple web server, let’s pull in some data from Clever’s REST API to show their course schedule.
 
