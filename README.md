@@ -302,7 +302,7 @@ So with that said, let's get our user's authenticated. I'll be showing code exam
 	<p><a href="/logout">log out</a></p>
 	```
 	
-	This simple application demonstrates the basic framework for dealing with Clever's Auth Platform and API. The "students" and "sections" endpoints we used here represent only a tiny fraction of the data Clever makes available. To find out more about what's available, check out the [interactive API explorer](https://clever.com/developers/docs/explorer). Finally a tidied-up version of this example application can be found here: (), and running on heroku at (). (Note that if you want to deploy to heroku, you'll need to use their [config management system](https://devcenter.heroku.com/articles/config-vars) tp store your API credentials).
+	This simple application demonstrates the basic framework for dealing with Clever's Auth Platform and API. The "students" and "sections" endpoints we used here represent only a tiny fraction of the data Clever makes available. To find out more about what's available, check out the [interactive API explorer](https://clever.com/developers/docs/explorer). Finally a tidied-up version of this example application can be found here: [https://github.com/worace/clever-test](https://github.com/worace/clever-test), and running on heroku at [https://obscure-bastion-5205.herokuapp.com/](https://obscure-bastion-5205.herokuapp.com/). (Note that if you want to deploy to heroku, you'll need to use their [config management system](https://devcenter.heroku.com/articles/config-vars) tp store your API credentials).
 	
 	Happy Clever-ing!
 	
