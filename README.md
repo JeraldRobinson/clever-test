@@ -8,15 +8,15 @@ Clever's auth platform is an implementation of the Oauth2 protocol. Interacting 
 	
 __Steps for authenticating users with Clever:__
 
-	1. Constructing a valid "login" link to Clever's oauth endpoint. (This will take the user away from your site momentarily so they can login with Clever)
-	2. Receiving a temporary authorization code from Clever (this is generally included as a parameter in a redirect to your server)
-	3. Exchanging the temporary grant for an actual Oauth Token via Clever's token API.
+1. Constructing a valid "login" link to Clever's oauth endpoint. (This will take the user away from your site momentarily so they can login with Clever)
+2. Receiving a temporary authorization code from Clever (this is generally included as a parameter in a redirect to your server)
+3. Exchanging the temporary grant for an actual Oauth Token via Clever's token API.
 	
 __To make the auth flow work we'll use a few pieces of info from Clever:__
 
-	- Clever Client ID (public, assigned when you register your Clever app)
-	- Clever Client Secret (secret, assigned when you register your Clever app)
-	- redirect uri (public, configurable in clever's app console)
+- Clever Client ID (public, assigned when you register your Clever app)
+- Clever Client Secret (secret, assigned when you register your Clever app)
+- redirect uri (public, configurable in clever's app console)
 
 A quick note about working with these Clever credentials: while you could simply embed these in source, it's best to anonymize them. An easy way to do this is by exporting them to your shell environment. For example:
 
