@@ -66,7 +66,8 @@ So with that said, let's get our user's authenticated. I'll be showing code exam
 
 	def clever_auth_url
   		URI(CLEVER_ROOT).tap do |uri|
-    		uri.query = clever_auth_params.to_query
+  		  uri.path = "/oauth/authorize"
+    		  uri.query = clever_auth_params.to_query
   		end
 	end
 
