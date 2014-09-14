@@ -43,10 +43,9 @@ class CleverDemo < Sinatra::Base
   def me_info(token)
     conn = Faraday.new(:url => 'https://api.clever.com') do |builder|
       builder.adapter  Faraday.default_adapter
+      builder.headers["Authorization"] = "Bearer #{token}"
     end
-    conn.headers["Authorization"] = "Bearer #{token}"
-    info = conn.get("/me").body
-    JSON.parse(info)
+    JSON.parse(conn.get("/me").body)
   end
 
   def code_params
