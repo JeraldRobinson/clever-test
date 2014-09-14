@@ -28,7 +28,7 @@ export CLEVER_API_KEY=your_key
 
 Then you can access them in your code: `ENV["CLEVER_CLIENT_ID"]` (Ruby)
 
-So with that said, let's get our user's authenticated. I'll be showing code examples for a simple web server implementation using Ruby's Sinatra library, but the principles will apply to any language or framework.
+So with that said, let's get our users authenticated. I'll be showing code examples for a simple web server implementation using Ruby's Sinatra library, but the principles will apply to any language or framework.
 
 1. __Linking to Clever’s oauth server__
 
