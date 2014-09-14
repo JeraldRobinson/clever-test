@@ -64,12 +64,12 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 		"<a href='#{clever_auth_url}'>Log in with Clever!</a>"
 	end
 
-	def clever_auth_url
-  		URI(CLEVER_ROOT).tap do |uri|
-  		  uri.path = "/oauth/authorize"
-    		  uri.query = clever_auth_params.to_query
-  		end
-	end
+  def clever_auth_url
+    URI(CLEVER_ROOT).tap do |uri|
+      uri.path = "/oauth/authorize"
+      uri.query = clever_auth_params.to_query
+    end
+  end
 
 	def clever_auth_params
  	  {
