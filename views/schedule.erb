@@ -1,26 +1,15 @@
-<% if @info && @info["valid"] %>
-  <p>Hi, <%= @info["data"]["name"]["first"] %>! Here's your schedule:</p>
-  <table>
+<p>Hi, <%= @student_info["data"]["name"]["first"] %></p>
+<p>Here's your schedule:</p>
+<table>
+  <tr>
+    <th>Class Name</th>
+    <th>Period</th>
+  </tr>
+  <% @sections.each do |section| %>
     <tr>
-      <th>Class Name</th>
-      <th>Instructor</th>
-      <th>Period</th>
-      <th>Id</th>
+      <td><%=section["name"]%></td>
+      <td><%=section["period"]%></td>
     </tr>
-    <% sections(@info["data"]["id"]).sort_by(&:period).each do |section| %>
-      <tr>
-        <td><%=section.course_name%></td>
-        <td><%="#{section.instructor.name[:first].chars.first}. #{section.instructor.name[:last]}"%> </td>
-        <td><%=section.period%></td>
-        <td><%=section.id%></td>
-      </tr>
-    <% end %>
-  </table>
-  <p><a href="/logout">log out</a></p>
-<% else %>
-<p>
-<a href="<%=clever_auth_url%>">
-  log in with clever
-</a>
-</p>
-<% end %>
+  <% end %>
+</table>
+<p><a href="/logout">Log out</a></p>
