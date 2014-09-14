@@ -51,53 +51,53 @@ So with that said, let's get our user's authenticated. I'll be showing code exam
 	- `response_type` -- generally "code"
 
 	By encoding these items as query params in a link to clever.com/oauth/authorize, you give Clever the info it needs to recognize your application, and to send the user back to you after they have authenticated. Let's add a basic HTTP endpoint which shows this link to our users:
-	
-		require "sinatra"
-		require "active_support/core_ext/hash" #for Hash#to_query
-		require "uri"
 
-		CLEVER_ROOT = "https://clever.com"
-		CLEVER_REDIRECT_URI = "http://localhost:9292/oauth"
+	```	
+	require "sinatra"
+	require "active_support/core_ext/hash" #for Hash#to_query
+	require "uri"
 
-		get "/" do
-			"<a href='#{clever_auth_url}'>Log in with Clever!</a>"
-		end
-	
-		def clever_auth_url
-	  		URI(CLEVER_ROOT).tap do |uri|
-	    		uri.query = clever_auth_params.to_query
-	  		end
-		end
-	
-		def clever_auth_params
-	 		{
-	  		"client_id" => ENV["CLEVER_CLIENT_ID"],
-		    "redirect_uri" => CLEVER_REDIRECT_URI,
-		    "response_type" => "code",
-		    "scope" => "read:user_id read:student"
-			}
-		end
+	CLEVER_ROOT = "https://clever.com"
+	CLEVER_REDIRECT_URI = "http://localhost:9292/oauth"
+
+	get "/" do
+		"<a href='#{clever_auth_url}'>Log in with Clever!</a>"
+	end
+
+	def clever_auth_url
+  		URI(CLEVER_ROOT).tap do |uri|
+    		uri.query = clever_auth_params.to_query
+  		end
+	end
+
+	def clever_auth_params
+ 	  {
+  	    "client_id" => ENV["CLEVER_CLIENT_ID"],
+	    "redirect_uri" => CLEVER_REDIRECT_URI,
+	    "response_type" => "code",
+	    "scope" => "read:user_id read:student",
+        "district_id" => "5327a245c79f90670e001b78"
+	  }
+	end
+	```
 	
 	By clicking this link, the user is taken to clever.com, presented with a login UI, and, if they authenticate successfully, redirected back to our site at `/oauth`. Currently we aren't doing anything to handle this request, so let's look at that in the next step.
 	
 2. __Handling authentication grants from Clever__
 
-	When Clever sends the user back to your site, they'll include a special `code` parameter. An example redirect URI might look like:
+	When Clever sends the user back to your site, they'll include a special `code` parameter. This represents a temporary grant to authorize your application with the user's Clever account. To do this, you need to send a POST to clever's token endpoint: `https://clever.com/oauth/tokens`. This request takes a few parameters:
 
-	```
-	http://localhost:9292/oauth?code=asdf123
-	```
-
-	This code parameter represents a temporary grant to authorize your application with the user's Clever account. To do this, you need to send a POST to clever's token endpoint: `https://clever.com/oauth/tokens`. This request takes a few parameters:
-
-	- the `code` you received from clever; this identifies the user
-	- `grant_type` -- so far Clever only supports “authorization_code” in this field
-	- Your application's registered `redirect_uri`
-	- Your Clever `client_id` and `client_secret`. These are includes as HTTP Basic Auth parameters, where username is your `client_id` and password is your `client_secret`. Some HTTP libraries support basic auth directly, but you can also send thes credentials as n `Authorization` header. The format is to Base64 ecode the string "`client_id`:`client_secret` (example below).
+	- the `code` you received from clever
 	
-	Bear in mind that Base64 is merely an encoding convenience, not a cryptographic hashing algorithm. To protect yourself against MITM attacks that could expose your client secret, make sure to always send requests to Clever over HTTPS.
+	- `grant_type` -- so far Clever only supports “authorization_code” in this field
+	
+	- Your application's registered `redirect_uri`
+	
+	- Your Clever `client_id` and `client_secret`. These are include as HTTP Basic Auth parameters, where username is your `client_id` and password is your `client_secret`. Some HTTP libraries support basic auth directly, but you can also send thes credentials as n `Authorization` header. The format is to Base64 ecode the string "`client_id`:`client_secret` (example below).
+	
+	Bear in mind that Base64 is merely an encoding convenience, not a cryptographic hashing function. To protect yourself against MITM attacks that could expose your client secret, always send requests to Clever over HTTPS.
 
-	So that said, here's what handling the `/oauth` request and exchanging the code looks like in our Sinatra app. We will be using Ruby's Faraday library to make the request to Clever's token endpoint.
+	Here's what handling the `/oauth` request and exchanging the code looks like in our Sinatra app. We will be using Ruby's Faraday library to make the request to Clever's token endpoint.
 
 	```
 	require "json"
