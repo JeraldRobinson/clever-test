@@ -52,7 +52,7 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 
 	By encoding these items as query params in a link to clever.com/oauth/authorize, you give Clever the info it needs to recognize your application, and to send the user back to you after they have authenticated. Let's add a basic HTTP endpoint which shows this link to our users:
 
-	```	
+	```ruby
 	require "sinatra"
 	require "active_support/core_ext/hash" #for Hash#to_query
 	require "uri"
@@ -60,26 +60,26 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 	CLEVER_ROOT = "https://clever.com"
 	CLEVER_REDIRECT_URI = "http://localhost:9292/oauth"
 
-	get "/" do
-		"<a href='#{clever_auth_url}'>Log in with Clever!</a>"
+        get "/" do
+	  "<a href='#{clever_auth_url}'>Log in with Clever!</a>"
 	end
 
-  def clever_auth_url
-    URI(CLEVER_ROOT).tap do |uri|
-      uri.path = "/oauth/authorize"
-      uri.query = clever_auth_params.to_query
-    end
-  end
+        def clever_auth_url
+          URI(CLEVER_ROOT).tap do |uri|
+            uri.path = "/oauth/authorize"
+            uri.query = clever_auth_params.to_query
+          end
+        end
 
-	def clever_auth_params
- 	  {
-  	    "client_id" => ENV["CLEVER_CLIENT_ID"],
-	    "redirect_uri" => CLEVER_REDIRECT_URI,
-	    "response_type" => "code",
-	    "scope" => "read:user_id read:student",
-        "district_id" => "5327a245c79f90670e001b78"
-	  }
-	end
+        def clever_auth_params
+          {
+            "client_id" => ENV["CLEVER_CLIENT_ID"],
+            "redirect_uri" => CLEVER_REDIRECT_URI,
+            "response_type" => "code",
+            "scope" => "read:user_id read:student",
+            "district_id" => "5327a245c79f90670e001b78"
+          }
+        end
 	```
 	
 	By clicking this link, the user is taken to clever.com, presented with a login UI, and, if they authenticate successfully, redirected back to our site at `/oauth`. Currently we aren't doing anything to handle this request, so let's look at that in the next step.
@@ -100,9 +100,9 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 
 	Here's what handling the `/oauth` request and exchanging the code looks like in our Sinatra app. We will be using Ruby's Faraday library to make the request to Clever's token endpoint.
 
-	```
+	```ruby
 	require "json"
-	....
+	#....
 	def clever_basic_auth_string
 	  Base64.encode64("#{ENV["CLEVER_CLIENT_ID"]}:#{ENV["CLEVER_CLIENT_SECRET"]}").gsub("\n","")
 	end
@@ -141,7 +141,7 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 
 	In Ruby, the request to do so would look like this:
 	
-	```
+	```ruby
 	  def me_info(token)
 	    conn = Faraday.new(:url => 'https://api.clever.com') do |builder|
 	      builder.adapter  Faraday.default_adapter
@@ -153,7 +153,7 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 	
 	Let's do this in our `/oauth` endpoint after we handle the user's authentication:
 	
-	```
+	```ruby
 	get "/oauth" do
 	  ...	
 	  if response.success?
@@ -171,7 +171,7 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 
 	So now we have authenticated the user with clever and fetched their basic info. But you probably noticed if you refresh the page after a few moments you get an "expired grant" error. We need to save this authentication info so we don't have to re-authenticate them a new `code` every request. Let's save the user's Clever ID in their session, so we can identify them on subsequent requests. Finally, instead of leaving our user on the `/oauth` endpoint, lets redirect them back to home, and add some logic there to display different info for our logged in users.
 
-	```
+	```ruby
 	enable :sessions
 	
 	get "/" do
@@ -213,7 +213,7 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 
 	Here’s how that setup looks using Faraday: 
 
-	```
+	```ruby
 	def clever_client
 	  Faraday.new(:url => 'https://api.clever.com') do |builder|
 	    builder.adapter  Faraday.default_adapter
@@ -231,7 +231,7 @@ info based on the student ID we saved in the user’s session. Note that
 we are doing some additional sorting and processing of the `sections`
 response to make it easier to work with in our template.
 	
-	```
+	```ruby
 	def student_info(student_id)
 	  response = clever_client.get("/v1.1/students/#{student_id}")
 	  if response.success?
@@ -257,7 +257,7 @@ response to make it easier to work with in our template.
 
 	Finally let's use this data to show the user their schedule. Since this UI is getting a bit more complicated, let's add a template in `views/schedule.erb`and do our rendering there. Now our root action will look like:
 	
-	```
+	```ruby
 	get "/" do
 	  if session["clever_id"]
 	    @student_info = student_info(session["clever_id"])
@@ -271,7 +271,7 @@ response to make it easier to work with in our template.
 	
 	and the schedule (`views/schedule.erb`) template will look like:
 	
-	```
+	```HTML+ERB
 	<p>Hi, <%= @student_info["data"]["name"]["first"] %></p>
 	<p>Here's your schedule:</p>
 	<table>
@@ -292,7 +292,7 @@ response to make it easier to work with in our template.
 	
 	Finally, let's give our users the ability to logout. This can be done with another route (I will use "/logout"), which simply clears the user's session and redirects them back to root:
 	
-	```
+	```ruby
 	get "/logout" do
 	  session.clear
 	  redirect "/"
@@ -301,8 +301,8 @@ response to make it easier to work with in our template.
 	
 	We can display this to logged in users by adding a line to our `schedule.erb` template:
 	
-	```
-	...
+	```ruby
+	#...
 	<p><a href="/logout">log out</a></p>
 	```
 	
