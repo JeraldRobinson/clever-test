@@ -201,7 +201,7 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 	end
 	```
 	
-	One last note about Oauth tokens -- these are the "cash" of the Oauth protocol. An attacker who captures a user's token is able to masquerade as them with impunity. For this reason, it's better to identify users with less sensitive data like a Clever ID or other UUID you create rather than, for example, persisting the Oauth token itself in a user session. 
+	One last note about Oauth tokens -- these are the "cash" of the Oauth protocol. An attacker who captures a user's token is able to masquerade as them with impunity. For this reason, it's better to identify users with less sensitive data like a Clever ID or other UUID you create rather than, for example, persisting the Oauth token itself in a user session.
 
 2. __Using the API to Display a User’s Course Schedule__
 
@@ -226,7 +226,10 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 	end
 	```
 
-	Now that our client is set up, lets fetch the user info and section info based on the student ID we saved in the user’s session:
+	Now that our client is set up, lets fetch the user info and section
+info based on the student ID we saved in the user’s session. Note that
+we are doing some additional sorting and processing of the `sections`
+response to make it easier to work with in our template.
 	
 	```
 	def student_info(student_id)
@@ -285,7 +288,7 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 	</table>
 	```
 	
-	You should end up with a simple list of sections, ordered by period: https://www.evernote.com/shard/s294/sh/308afe26-422b-4325-a04e-8e95b8750fbd/371abdbbb25342d186574d5dc3ce8604
+	You should end up with a simple list of sections, ordered by period: https://www.evernote.com/shard/s294/sh/9f31fbc6-57ad-4c96-bf5b-f63119cbeeb7/8c0030da3ef9d90986636e8b78170249
 	
 	Finally, let's give our users the ability to logout. This can be done with another route (I will use "/logout"), which simply clears the user's session and redirects them back to root:
 	
@@ -303,7 +306,9 @@ So with that said, let's get our users authenticated. I'll be showing code examp
 	<p><a href="/logout">log out</a></p>
 	```
 	
-	This simple application demonstrates the basic framework for dealing with Clever's Auth Platform and API. The "students" and "sections" endpoints we used here represent only a tiny fraction of the data Clever makes available. To find out more about what's available, check out the [interactive API explorer](https://clever.com/developers/docs/explorer). Finally a tidied-up version of this example application can be found here: [https://github.com/worace/clever-test](https://github.com/worace/clever-test), and running on heroku at [https://obscure-bastion-5205.herokuapp.com/](https://obscure-bastion-5205.herokuapp.com/). (Note that if you want to deploy to heroku, you'll need to use their [config management system](https://devcenter.heroku.com/articles/config-vars) tp store your API credentials).
+	This simple application demonstrates the basic framework for dealing with Clever's Auth Platform and API. The "students" and "sections" endpoints we used here represent only a tiny fraction of the data Clever makes available. To find out more about what's available, check out the [interactive API explorer](https://clever.com/developers/docs/explorer).
+
+  A tidied-up version of this example application can be found here: [https://github.com/worace/clever-test](https://github.com/worace/clever-test), and running on heroku at [https://obscure-bastion-5205.herokuapp.com/](https://obscure-bastion-5205.herokuapp.com/). (Note that if you want to deploy to heroku, you'll need to use their [config management system](https://devcenter.heroku.com/articles/config-vars) tp store your API credentials).
 	
 	Happy Clever-ing!
 	
